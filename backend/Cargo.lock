@@ -1623,6 +1623,7 @@ dependencies = [
  "dotenv",
  "libsqlite3-sys",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
