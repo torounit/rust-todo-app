@@ -1,18 +1,22 @@
-use actix_web::{web, App, HttpRequest, HttpServer, Responder};
+use actix_web::{get, web, App, HttpRequest, HttpServer, Responder};
+use diesel::prelude::*;
+use todo_app_backend::models::Todo;
+use todo_app_backend::schema::todos::dsl::todos;
+use todo_app_backend::*;
 
-async fn greet(req: HttpRequest) -> impl Responder {
-    let name = req.match_info().get("name").unwrap_or("World???");
-    format!("Hello {}!", &name)
+#[get("/")]
+async fn index(_req: HttpRequest) -> impl Responder {
+    let connection = establish_connection();
+    let results = todos
+        .load::<Todo>(&connection)
+        .expect("Error loading todos");
+    web::Json(results)
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
-        App::new()
-            .route("/", web::get().to(greet))
-            .route("/{name}", web::get().to(greet))
-    })
-    .bind(("127.0.0.1", 8081))?
-    .run()
-    .await
+    HttpServer::new(|| App::new().service(index))
+        .bind(("127.0.0.1", 8081))?
+        .run()
+        .await
 }
